@@ -9,6 +9,12 @@ import {
   Typography,
 } from "@material-ui/core";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import axios from "axios";
+import { useForm } from "react-hook-form";
+import CredentialsModel from "../../../Models/CredentialsModel";
+import { loginAction } from "../../../Redux/AuthState";
+import store from "../../../Redux/Store";
+import notify from "../../../Services/Notifications";
 
 const useStyles = makeStyles((theme: Theme) => ({
   paper: {
@@ -39,6 +45,25 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 function Login(): JSX.Element {
   const classes = useStyles();
+  const { register, handleSubmit } = useForm<CredentialsModel>();
+
+  async function send(credentials: CredentialsModel) {
+    try {
+      const loginResp = await axios.post<string>(
+        "http://localhost:8080/api/auth/login?" +
+          "password=" +
+          credentials.password +
+          "&username=" +
+          credentials.username
+      );
+      store.dispatch(loginAction(loginResp.data));
+      console.log(loginResp.data);
+      notify.success("You are successfully logged in");
+    } catch (err) {
+      notify.error("Wrong email or password");
+    }
+  }
+
   return (
     <div className="Login">
       <Container component="main" maxWidth="xs">
@@ -50,16 +75,16 @@ function Login(): JSX.Element {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <form className={classes.form}>
+          <form className={classes.form} onSubmit={handleSubmit(send)}>
             <TextField
               variant="outlined"
               required
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
               autoFocus
-              //   {...register("email")}
+              {...register("username")}
             />
             <TextField
               variant="outlined"
@@ -69,8 +94,8 @@ function Login(): JSX.Element {
               label="Password"
               type="password"
               id="password"
-              autoComplete="current-password"
-              //   {...register("password")}
+              autoFocus
+              {...register("password")}
             />
             <Button
               type="submit"

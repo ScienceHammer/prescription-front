@@ -1,11 +1,12 @@
+import UserModel from "../Models/UserModel";
 
 // Auth State
 export class AuthState {
-    public token: string;
+    public user: UserModel;
     public constructor() {
-        const storedToken = JSON.parse(sessionStorage.getItem("token"));
-        if (storedToken) {
-            this.token = storedToken;
+        const storedUser = JSON.parse(sessionStorage.getItem("user"));
+        if (storedUser) {
+            this.user = storedUser;
         }
     }
 }
@@ -30,12 +31,12 @@ export interface AuthAction {
 // --------------------------------------------------------------
 
 // Auth Action Creators: functions which takes payload and action type and returns the action object
-export function loginAction(token: string): AuthAction {
-    return { type: AuthActionType.login, payload: token };
+export function loginAction(user: string): AuthAction {
+    return { type: AuthActionType.login, payload: user };
 }
 
-export function signUpAction(token: string): AuthAction {
-    return { type: AuthActionType.login, payload: token };
+export function signUpAction(user: string): AuthAction {
+    return { type: AuthActionType.login, payload: user };
 }
 
 export function logoutAction(): AuthAction {
@@ -49,12 +50,12 @@ export function authReducer(currentState: AuthState = new AuthState(), action: A
     switch (action.type) {
         case AuthActionType.login:
         case AuthActionType.signup:
-            newState.token = action.payload;
-            sessionStorage.setItem("token", JSON.stringify(newState.token));
+            newState.user = action.payload;
+            sessionStorage.setItem("user", JSON.stringify(newState.user));
             break;
         case AuthActionType.logout:
-            newState.token = null;
-            sessionStorage.removeItem("token");
+            newState.user = null;
+            sessionStorage.removeItem("user");
             break;
     }
 

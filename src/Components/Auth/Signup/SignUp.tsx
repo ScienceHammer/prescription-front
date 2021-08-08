@@ -15,6 +15,9 @@ import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import UserModel from "../../../Models/UserModel";
+import { Role } from "../../../Models/RoleEnum";
+import { signUpAction } from "../../../Redux/AuthState";
+import store from "../../../Redux/Store";
 
 const useStyles = makeStyles((theme: Theme) => ({
   paper: {
@@ -58,9 +61,9 @@ function SignUp(): JSX.Element {
   async function send(user: UserModel) {
     try {
       if (checked) {
-        user.role = "ROLE_DOC";
+        user.role = Role.Doctor;
       } else {
-        user.role = "ROLE_USER";
+        user.role = Role.User;
         user.doctor = null;
       }
       console.log(user);
@@ -68,7 +71,8 @@ function SignUp(): JSX.Element {
         "http://localhost:8080/api/auth/register",
         user
       );
-      console.log(signUp);
+      store.dispatch(signUpAction(signUp.data));
+      console.log(signUp.data);
     } catch (err) {
       console.log(err);
     }
