@@ -1,4 +1,11 @@
-import { Box, Button, makeStyles, Modal, Theme } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Dialog,
+  makeStyles,
+  Modal,
+  Theme,
+} from "@material-ui/core";
 import { useState } from "react";
 import Login from "../../../Auth/Login/Login";
 import SignUp from "../../../Auth/Signup/SignUp";
@@ -80,18 +87,16 @@ function GuestHeaderMenu(): JSX.Element {
           aria-labelledby="modal-login"
         >
           <div id="modal-login" className={classes.login} style={modalStyle}>
-            <Login />
+            <Login onClose={handleLoginClose} />
           </div>
         </Modal>
-        <Modal
+        <Dialog
           open={signUpOpen}
           onClose={handleSignUpClose}
           aria-labelledby="modal-SignUp"
         >
-          <div id="modal-SignUp" className={classes.signUp} style={modalStyle}>
-            <SignUp />
-          </div>
-        </Modal>
+          <SignUp onClose={handleSignUpClose} />
+        </Dialog>
       </Box>
     </div>
   );

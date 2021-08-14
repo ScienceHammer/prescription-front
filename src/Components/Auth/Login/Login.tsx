@@ -11,6 +11,7 @@ import {
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
 import CredentialsModel from "../../../Models/CredentialsModel";
 import { loginAction } from "../../../Redux/AuthState";
 import store from "../../../Redux/Store";
@@ -43,9 +44,10 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-function Login(): JSX.Element {
+function Login(props: { onClose: Function }): JSX.Element {
   const classes = useStyles();
   const { register, handleSubmit } = useForm<CredentialsModel>();
+  const history = useHistory();
 
   async function send(credentials: CredentialsModel) {
     try {
@@ -58,7 +60,9 @@ function Login(): JSX.Element {
       );
       store.dispatch(loginAction(loginResp.data));
       console.log(loginResp.data);
+      history.push("/");
       notify.success("You are successfully logged in");
+      props.onClose();
     } catch (err) {
       notify.error("Wrong email or password");
     }

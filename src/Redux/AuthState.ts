@@ -4,7 +4,7 @@ import UserModel from "../Models/UserModel";
 export class AuthState {
     public user: UserModel;
     public constructor() {
-        const storedUser = JSON.parse(sessionStorage.getItem("user"));
+        const storedUser = JSON.parse(localStorage.getItem("user"));
         if (storedUser) {
             this.user = storedUser;
         }
@@ -51,11 +51,11 @@ export function authReducer(currentState: AuthState = new AuthState(), action: A
         case AuthActionType.login:
         case AuthActionType.signup:
             newState.user = action.payload;
-            sessionStorage.setItem("user", JSON.stringify(newState.user));
+            localStorage.setItem("user", JSON.stringify(newState.user));
             break;
         case AuthActionType.logout:
             newState.user = null;
-            sessionStorage.removeItem("user");
+            localStorage.removeItem("user");
             break;
     }
 
