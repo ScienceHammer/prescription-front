@@ -1,12 +1,19 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
   makeStyles,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -17,13 +24,18 @@ import {
   Theme,
   Typography,
 } from "@material-ui/core";
-import { useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { SyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
+import { DoseFrequencyEnum } from "../../../Models/DoseFrequencyEnum";
+import { DoseTypeEnum } from "../../../Models/DoseTypeEnum";
 import PrescripedMed from "../../../Models/PrescripedMed";
 import { UnitsEnum } from "../../../Models/UnitsEnum";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import UserModel from "../../../Models/UserModel";
 import store from "../../../Redux/Store";
+import JwtAxios from "../../../Services/JwtAxios";
+import Prescription from "../../../Models/Prescription";
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -62,16 +74,53 @@ const useStyles = makeStyles((theme: Theme) => ({
 function AddPrescription() {
   const classes = useStyles();
   const [prescripedMeds, setPrescripedMeds] = useState<PrescripedMed[]>([]);
-  const { register, handleSubmit } = useForm();
+  const { setValue, handleSubmit, register } = useForm<Prescription>();
   const [prescripedMed, setPrescripedMed] = useState<PrescripedMed>(
     new PrescripedMed()
   );
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<UserModel[]>([]);
+  const [optionSelected, setOptionSelected] = useState({
+    userIdNumber: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    email: "",
+  });
+  const [patientName, setPatientName] = useState<string>("");
+  const loading = open && options.length === 0;
 
-  const addPrescripedMed = () => {
-    console.log(prescripedMed);
-  };
+  useEffect(() => {
+    let active = true;
 
-  async function send(prescription: any) {
+    if (!loading) {
+      return undefined;
+    }
+
+    (async () => {
+      const response = await JwtAxios.get(
+        "http://localhost:8080/api/doctor/findUserByUserIdNumber"
+      );
+      const users = response.data;
+      console.log(users);
+
+      if (active) {
+        setOptions([...users]);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    if (!open) {
+      setOptions([]);
+    }
+  }, [open]);
+
+  async function send(prescription: Prescription) {
     console.log(prescription);
   }
 
@@ -93,31 +142,124 @@ function AddPrescription() {
         </h5>
         <Divider variant="middle" className={classes.divider} />
         <br />
-        <TextField
-          id="idNumber"
-          label="Id Number"
-          name="idNumber"
-          size="small"
+        <Autocomplete
+          id="asynchronous-demo"
           style={{ width: "200px", marginLeft: "15px" }}
-          autoFocus
+          freeSolo
+          value={optionSelected.userIdNumber}
+          onChange={(event, newValue) => {
+            console.log(newValue.toString());
+            // if (typeof newValue === "string") {
+            //   optionSelected.userIdNumber = newValue as string;
+            // } else if(typeof newValue === "string"){
+            //   optionSelected.userIdNumber = (
+            //     newValue as UserModel
+            //   ).userIdNumber;
+            // }
+            // setOptionSelected({ ...optionSelected });
+            // setValue("patient.userIdNumber", optionSelected.userIdNumber);
+          }}
+          open={open}
+          onOpen={() => {
+            setOpen(true);
+          }}
+          onClose={() => {
+            setOpen(false);
+          }}
+          getOptionSelected={(option, value) =>
+            option.userIdNumber === value.userIdNumber
+          }
+          getOptionLabel={(option) => {
+            if (typeof option === "string") {
+              return option;
+            }
+
+            // Regular option
+            return option.userIdNumber;
+          }}
+          options={options}
+          loading={loading}
+          autoHighlight
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Id Number"
+              size="small"
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <React.Fragment>
+                    {loading ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </React.Fragment>
+                ),
+              }}
+            />
+          )}
+          renderOption={(option) => {
+            return (
+              <Grid container alignItems="center">
+                <Grid item xs>
+                  <Typography
+                    variant="body1"
+                    color="primary"
+                    onClick={() => {
+                      setOptionSelected({ ...option });
+                      setValue("patient", option);
+                    }}
+                  >
+                    {option.userIdNumber}
+                  </Typography>
+                </Grid>
+              </Grid>
+            );
+          }}
         />
+
         <Box className={classes.box}>
           <TextField
-            id="patientName"
-            label="Patient Name"
-            name="patientName"
+            id="firstName"
+            label="First Name"
+            name="firstName"
             size="small"
-            style={{ width: "50%" }}
-            {...register("patientName")}
+            value={optionSelected.firstName}
+            onChange={(event: React.ChangeEvent<{ value: any }>) => {
+              optionSelected.firstName = event.target.value as string;
+              setOptionSelected({ ...optionSelected });
+              setValue("patient.firstName", optionSelected.firstName);
+            }}
+            style={{ width: "20%" }}
             autoFocus
           />
           <TextField
-            id="gender"
-            label="Gender"
-            name="gender"
+            id="lastName"
+            label="Last Name"
+            name="lastName"
             size="small"
-            style={{ width: "15%" }}
-            {...register("gender")}
+            value={optionSelected.lastName}
+            onChange={(event: React.ChangeEvent<{ value: any }>) => {
+              optionSelected.lastName = event.target.value as string;
+              setOptionSelected({ ...optionSelected });
+              setValue("patient.lastName", optionSelected.lastName);
+            }}
+            style={{ width: "30%" }}
+            autoFocus
+          />
+          <TextField
+            id="email"
+            label="Email Adress"
+            name="email"
+            size="small"
+            style={{ width: "20%" }}
+            value={optionSelected.email}
+            onChange={(event: React.ChangeEvent<{ value: any }>) => {
+              optionSelected.email = event.target.value as string;
+              setOptionSelected({ ...optionSelected });
+              console.log(optionSelected.email);
+              setValue("patient.email", optionSelected.email);
+            }}
             autoFocus
           />
           <TextField
@@ -126,59 +268,37 @@ function AddPrescription() {
             name="phoneNumber"
             size="small"
             style={{ width: "20%" }}
-            {...register("phoneNumber")}
+            value={optionSelected.phoneNumber}
+            onChange={(event: React.ChangeEvent<{ value: any }>) => {
+              optionSelected.phoneNumber = event.target.value as string;
+              setOptionSelected({ ...optionSelected });
+              setValue("patient.phoneNumber", optionSelected.phoneNumber);
+            }}
             autoFocus
           />
         </Box>
-
-        <Box className={classes.medic}>
-          {/* <TextField
-              id="doseType"
-              variant="outlined"
-              label="Dose Type"
-              name="doseType"
-              size="small"
-              value={prescripedMed.doseType}
-              onChange={(event: SyntheticEvent) => {
-                prescripedMed.doseType = (event.target as HTMLInputElement).value;
-              }}
-              autoFocus
-            /> */}
-
-          {/* <TextField
-              id="dosageUnit"
-              variant="outlined"
-              label="Dosage Unit"
-              name="dosageUnit"
-              size="small"
-              value={prescripedMed.dosageUnit}
-              onChange={(event: SyntheticEvent) => {
-                prescripedMed.dosageUnit = (
-                  event.target as HTMLInputElement
-                ).value;
-              }}
-              autoFocus
-            /> */}
-          {/* <TextField
-              id="doseFrequency"
-              variant="outlined"
-              label="Dose Frequency"
-              name="doseFrequency"
-              size="small"
-              autoFocus
-            /> */}
-        </Box>
-
+        <TextField
+          id="reason"
+          label="Reason"
+          name="reason"
+          size="small"
+          style={{ width: "40%", marginLeft: "15px" }}
+          autoFocus
+          {...register("reason")}
+        />
         <br />
         <TableContainer component={Paper}>
           <Table className={classes.table} aria-label="simple table">
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell align="right">Active Sub</TableCell>
-                <TableCell align="right">Dose Amount</TableCell>
-                <TableCell align="right">Dosages</TableCell>
-                <TableCell align="right">Number Of Taking Days</TableCell>
+                <TableCell align="center">Active Sub</TableCell>
+                <TableCell align="center">Dose Type</TableCell>
+                <TableCell align="center">Dose Amount</TableCell>
+                <TableCell align="center">Unit</TableCell>
+                <TableCell align="center">Number Of Dosages</TableCell>
+                <TableCell align="center">Frequency</TableCell>
+                <TableCell align="center">Number Of Days</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -214,6 +334,30 @@ function AddPrescription() {
                   />
                 </TableCell>
                 <TableCell align="right">
+                  <FormControl>
+                    <Select
+                      native
+                      value={
+                        prescripedMed.doseType === null
+                          ? ""
+                          : prescripedMed.doseType
+                      }
+                      onChange={(event: React.ChangeEvent<{ value: any }>) => {
+                        prescripedMed.doseType = event.target
+                          .value as DoseTypeEnum;
+                        setPrescripedMed({ ...prescripedMed });
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {Object.entries(DoseTypeEnum).map((obj) => (
+                        <option key={obj[0]} value={obj[1]}>
+                          {obj[0]}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell align="right">
                   <TextField
                     id="doseAmount"
                     name="doseAmount"
@@ -229,6 +373,30 @@ function AddPrescription() {
                   />
                 </TableCell>
                 <TableCell align="right">
+                  <FormControl>
+                    <Select
+                      native
+                      value={
+                        prescripedMed.dosageUnit === null
+                          ? ""
+                          : prescripedMed.dosageUnit
+                      }
+                      onChange={(event: React.ChangeEvent<{ value: any }>) => {
+                        prescripedMed.dosageUnit = event.target
+                          .value as UnitsEnum;
+                        setPrescripedMed({ ...prescripedMed });
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {Object.entries(UnitsEnum).map((obj) => (
+                        <option key={obj[0]} value={obj[1]}>
+                          {obj[0]}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell align="right">
                   <TextField
                     id="dosage"
                     name="dosage"
@@ -242,6 +410,30 @@ function AddPrescription() {
                     }}
                     autoFocus
                   />
+                </TableCell>
+                <TableCell align="right">
+                  <FormControl>
+                    <Select
+                      native
+                      value={
+                        prescripedMed.doseFrequency === null
+                          ? ""
+                          : prescripedMed.doseFrequency
+                      }
+                      onChange={(event: React.ChangeEvent<{ value: any }>) => {
+                        prescripedMed.doseFrequency = event.target
+                          .value as DoseFrequencyEnum;
+                        setPrescripedMed({ ...prescripedMed });
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {Object.entries(DoseFrequencyEnum).map((obj) => (
+                        <option key={obj[0]} value={obj[1]}>
+                          {obj[0]}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </TableCell>
                 <TableCell align="right">
                   <TextField
@@ -276,8 +468,11 @@ function AddPrescription() {
                     {row.name}
                   </TableCell>
                   <TableCell align="right">{row.activeSubstance}</TableCell>
+                  <TableCell align="right">{row.doseType}</TableCell>
                   <TableCell align="right">{row.doseAmount}</TableCell>
+                  <TableCell align="right">{row.dosageUnit}</TableCell>
                   <TableCell align="right">{row.dosage}</TableCell>
+                  <TableCell align="right">{row.doseFrequency}</TableCell>
                   <TableCell align="right">{row.numberOfTakingDays}</TableCell>
                   <TableCell
                     onClick={() => {

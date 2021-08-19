@@ -15,8 +15,11 @@ class PrescripedMed {
     constructor() {
         this.name="";
         this.activeSubstance="";
+        this.doseType=null;
         this.doseAmount=0;
+        this.dosageUnit=null;
         this.dosage=0;
+        this.doseFrequency=null;
         this.numberOfTakingDays=0;
     }
 }

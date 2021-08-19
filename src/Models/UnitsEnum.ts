@@ -1,3 +1,6 @@
 export enum UnitsEnum {
-    MG, G, ML, L
+    mg="MG", 
+    g="G", 
+    mL="ML", 
+    l="L"
 }

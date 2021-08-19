@@ -1,3 +1,6 @@
 export enum DoseFrequencyEnum {
-    EIGHTHOURS ,DAY, WEEK, MONTH 
+    "8 HOURS" = "EIGHTHOURS" ,
+    DAY = "DAY", 
+    WEEK = "WEEK", 
+    MONTH = "MONTH" 
 }
