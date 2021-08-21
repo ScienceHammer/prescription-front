@@ -87,7 +87,6 @@ function AddPrescription() {
     phoneNumber: "",
     email: "",
   });
-  const [patientName, setPatientName] = useState<string>("");
   const loading = open && options.length === 0;
 
   useEffect(() => {
@@ -121,7 +120,12 @@ function AddPrescription() {
   }, [open]);
 
   async function send(prescription: Prescription) {
-    console.log(prescription);
+    prescription.prescribedMeds = [...prescripedMeds];
+    const response = await JwtAxios.post<Prescription>(
+      "http://localhost:8080/api/doctor/addPrescription",
+      prescription
+    );
+    console.log(response.data);
   }
 
   return (
@@ -146,19 +150,7 @@ function AddPrescription() {
           id="asynchronous-demo"
           style={{ width: "200px", marginLeft: "15px" }}
           freeSolo
-          value={optionSelected.userIdNumber}
-          onChange={(event, newValue) => {
-            console.log(newValue.toString());
-            // if (typeof newValue === "string") {
-            //   optionSelected.userIdNumber = newValue as string;
-            // } else if(typeof newValue === "string"){
-            //   optionSelected.userIdNumber = (
-            //     newValue as UserModel
-            //   ).userIdNumber;
-            // }
-            // setOptionSelected({ ...optionSelected });
-            // setValue("patient.userIdNumber", optionSelected.userIdNumber);
-          }}
+          disableClearable
           open={open}
           onOpen={() => {
             setOpen(true);
@@ -169,14 +161,7 @@ function AddPrescription() {
           getOptionSelected={(option, value) =>
             option.userIdNumber === value.userIdNumber
           }
-          getOptionLabel={(option) => {
-            if (typeof option === "string") {
-              return option;
-            }
-
-            // Regular option
-            return option.userIdNumber;
-          }}
+          getOptionLabel={(option) => option.userIdNumber}
           options={options}
           loading={loading}
           autoHighlight
@@ -195,6 +180,11 @@ function AddPrescription() {
                     {params.InputProps.endAdornment}
                   </React.Fragment>
                 ),
+              }}
+              onChange={(event) => {
+                optionSelected.userIdNumber = event.target.value as string;
+                setOptionSelected({ ...optionSelected });
+                setValue("patient.userIdNumber", optionSelected.userIdNumber);
               }}
             />
           )}
@@ -257,7 +247,6 @@ function AddPrescription() {
             onChange={(event: React.ChangeEvent<{ value: any }>) => {
               optionSelected.email = event.target.value as string;
               setOptionSelected({ ...optionSelected });
-              console.log(optionSelected.email);
               setValue("patient.email", optionSelected.email);
             }}
             autoFocus
@@ -284,7 +273,8 @@ function AddPrescription() {
           size="small"
           style={{ width: "40%", marginLeft: "15px" }}
           autoFocus
-          {...register("reason")}
+          inputProps={{ ...register("reason") }}
+          // InputProps={{ ...register("reason") }}
         />
         <br />
         <TableContainer component={Paper}>
