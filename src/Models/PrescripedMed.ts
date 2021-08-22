@@ -3,6 +3,7 @@ import { DoseTypeEnum } from "./DoseTypeEnum";
 import { UnitsEnum } from "./UnitsEnum";
 
 class PrescripedMed {
+    public id: number;
     public name: string;
     public activeSubstance: string;
     public doseType: DoseTypeEnum;
@@ -13,14 +14,14 @@ class PrescripedMed {
     public numberOfTakingDays: number;
 
     constructor() {
-        this.name="";
-        this.activeSubstance="";
-        this.doseType=null;
-        this.doseAmount=0;
-        this.dosageUnit=null;
-        this.dosage=0;
-        this.doseFrequency=null;
-        this.numberOfTakingDays=0;
+        this.name = "";
+        this.activeSubstance = "";
+        this.doseType = null;
+        this.doseAmount = 0;
+        this.dosageUnit = null;
+        this.dosage = 0;
+        this.doseFrequency = null;
+        this.numberOfTakingDays = 0;
     }
 }
 
